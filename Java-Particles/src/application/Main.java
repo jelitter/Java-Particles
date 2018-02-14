@@ -13,7 +13,7 @@ import javafx.scene.layout.AnchorPane;
 
 public class Main extends Application {
 	
-	private static int NUM_PARTICLES = 50;
+	private static int NUM_PARTICLES = 1;
 	private ArrayList<Particle> particles;
 	
 	@Override
@@ -55,8 +55,9 @@ public class Main extends Application {
 	    		for (Particle p: particles) {
 //	    			p.rotate();
 	    			p.seek(target);
-	    			p.edges();
-//	    			p.update();
+//	    			p.edges();
+	    			p.print();
+	    			p.update();
 	    		}
 	    	}
 	    }.start();

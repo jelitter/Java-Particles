@@ -27,7 +27,9 @@ public class Particle extends Polygon {
 
 		this.pos = new MyVector(Math.random()*WIDTH, Math.random()*HEIGHT);
 		this.vel = new MyVector(0,0);
-		this.acc = new MyVector(-1 + 2 * Math.random()/100, -1 + 2 * Math.random()/100);
+		this.acc = new MyVector(0,0);
+//		this.vel = new MyVector(-1 + 2 * Math.random()/100, -1 + 2 * Math.random()/100);
+//		this.acc = new MyVector(-1 + 2 * Math.random()/100, -1 + 2 * Math.random()/100);
 		this.col = Color.color(Math.random(), Math.random(), Math.random());
 		this.setFill(this.col);
 		this.setRotate(this.angle);
@@ -47,7 +49,7 @@ public class Particle extends Polygon {
 	}
 
 	public void update() {
-		this.vel.add(this.acc);
+//		this.vel.add(this.acc);
 		this.vel.limit(Particle.MAXVEL);
 		this.pos.add(this.vel);
 		this.acc.setMag(0);
@@ -86,4 +88,10 @@ public class Particle extends Polygon {
 			this.applyForce(new MyVector(0, -Particle.MAXVEL));
 		}
 	}
+	
+	public void print() {
+		System.out.println("Pos: " + this.pos);
+		System.out.println("Vel: " + this.vel);
+	}
+	
 }
