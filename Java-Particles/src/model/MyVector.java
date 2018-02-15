@@ -28,6 +28,12 @@ public class MyVector extends Point2D {
 		
 	}
 	
+	public MyVector add(MyVector vec) {
+		Point2D ret = super.add(vec);
+		return new MyVector(ret.getX(), ret.getY()); 
+//		return new MyVector(this.getX() + vec.getX(), this.getY() + vec.getY()); 
+	}
+	
 	public MyVector multiply(double mag) {
 		Point2D ret = super.multiply(mag); 
 		return new MyVector(ret.getX(), ret.getY()); 
@@ -45,5 +51,8 @@ public class MyVector extends Point2D {
 
 	public String toString() {
 		return "[" + this.getX() + ", " + this.getY() + "]";
+	}
+	public void print() {
+		System.out.println(this);
 	}
 }
