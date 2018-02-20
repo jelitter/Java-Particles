@@ -52,6 +52,9 @@ public class MyVector extends Point2D {
 	}
 
 	public String toString() {
-		return "[" + this.getX() + ", " + this.getY() + "]";
+		return "[" + Math.round(this.getX()) + ", " + Math.round(this.getY()) + "]";
+	}
+	public void print() {
+		System.out.println(this);
 	}
 }
