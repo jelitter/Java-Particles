@@ -13,7 +13,7 @@ import javafx.scene.layout.AnchorPane;
 
 public class Main extends Application {
 	
-	private static int NUM_PARTICLES = 1;
+	private static int NUM_PARTICLES = 10;
 	private ArrayList<Particle> particles;
 	
 	@Override
@@ -27,8 +27,10 @@ public class Main extends Application {
 			for (int i = 0; i < NUM_PARTICLES; i++) {
 				Particle p = new Particle();
 				particles.add(p);
-				root.getChildren().add(p);
+//				root.getChildren().add(p);
 			}
+			
+			root.getChildren().addAll(particles);
 			
 			primaryStage.setTitle("Particle test");
 			primaryStage.setScene(scene);

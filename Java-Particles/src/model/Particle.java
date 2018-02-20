@@ -7,7 +7,7 @@ import javafx.scene.shape.Polygon;
 public class Particle extends Polygon {
 
 	//	public static int sides = 3;
-	public static final double MAXVEL = 1.0;
+	public static final double MAXVEL = 0.5;
 	public static final double WIDTH = 1300.0;
 	public static final double HEIGHT = 900.0;
 
@@ -25,7 +25,8 @@ public class Particle extends Polygon {
 		this.rotation = (-1 + Math.random() * 2) * (5 * Math.random());
 		this.sides = (int) (2 + Math.floor(Math.random() * 6));
 
-		this.pos = new MyVector(Math.random()*WIDTH, Math.random()*HEIGHT);
+		this.pos = new MyVector(Math.random()*WIDTH/2, Math.random()*HEIGHT/2);
+//		this.pos = new MyVector(0,0);
 		this.vel = new MyVector(0,0);
 		this.acc = new MyVector(0,0);
 //		this.vel = new MyVector(-1 + 2 * Math.random()/100, -1 + 2 * Math.random()/100);
@@ -49,16 +50,18 @@ public class Particle extends Polygon {
 	}
 
 	public void update() {
-//		this.vel.add(this.acc);
-		this.vel.limit(Particle.MAXVEL);
-		this.pos.add(this.vel);
-		this.acc.setMag(0);
+		this.vel = this.vel.add(this.acc);
+		this.vel = this.vel.limit(Particle.MAXVEL);
+		this.pos = this.pos.add(this.vel);
+		this.acc = this.acc.setMag(0);
 
-		this.setTranslateX(this.getTranslateX() + this.pos.getX());
-		this.setTranslateY(this.getTranslateX() + this.pos.getY());
+//		this.setTranslateX(this.pos.getX());
+//		this.setTranslateY(this.pos.getY());
+		this.setTranslateX(this.getParent().getLayoutX() + this.pos.getX());
+		this.setTranslateX(this.getParent().getLayoutY() + this.pos.getY());
 	}
 	public void applyForce(MyVector force) {
-		this.acc.add(force);
+		this.acc = this.acc.add(force);
 	}
 	public void seek(MyVector target) {
 		MyVector desired = target.subtract(this.pos).setMag(Particle.MAXVEL);
@@ -90,8 +93,9 @@ public class Particle extends Polygon {
 	}
 	
 	public void print() {
-		System.out.println("Pos: " + this.pos);
-		System.out.println("Vel: " + this.vel);
+		System.out.println("Pos: " + Math.round(this.pos.getX()) + ", " + Math.round(this.pos.getY()));
+		System.out.println("Vel: " + Math.round(this.vel.getX()) + ", " + Math.round(this.vel.getY()));
+		System.out.println("Acc: " + Math.round(this.acc.getX()) + ", " + Math.round(this.acc.getY()));
 	}
 	
 }

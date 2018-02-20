@@ -28,11 +28,19 @@ public class MyVector extends Point2D {
 		
 	}
 	
+	public MyVector add(MyVector vec) {
+		Point2D ret = super.add(vec); 
+		return new MyVector(ret.getX(), ret.getY()); 
+	}
+	
 	public MyVector multiply(double mag) {
 		Point2D ret = super.multiply(mag); 
 		return new MyVector(ret.getX(), ret.getY()); 
 		
 	}
+	
+	
+	
 	public MyVector normalize() {
 //		Point2D ret = super.normalize(); 
 		return (this.magnitude() == 0) ? this : this.div(this.magnitude());  
