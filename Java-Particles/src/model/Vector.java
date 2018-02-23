@@ -28,6 +28,12 @@ public class Vector {
     	return this;
     }
     
+    public Vector mult(double mult) {
+    	this.setX(this.getX() * mult);
+    	this.setY(this.getY() * mult);
+    	return this;
+    }
+    
     public void set(double x, double y){
         this.x = x;
         this.y = y;
@@ -44,11 +50,12 @@ public class Vector {
         return (x*x + y*y);
     }
     
-    public void setMag(double mag){
+    public Vector setMag(double mag){
         double old_mag = Math.sqrt((x*x + y*y));
         
         this.x = x * mag / old_mag;
         this.y = y * mag / old_mag;
+        return this;
     }
 
     public double getX() {

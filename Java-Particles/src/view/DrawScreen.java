@@ -3,6 +3,7 @@ package view;
 import java.util.ArrayList;
 import java.util.List;
 
+import application.Main;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
@@ -14,7 +15,7 @@ public class DrawScreen extends Canvas {
     private GraphicsContext gtx;
 
     private int amount_particles = 0;
-    private int particles_per_klik = 1000;
+    private int particles_per_klik = 50;
 
     private final List<Particle> particles;
     private Particle attractor;
@@ -26,25 +27,33 @@ public class DrawScreen extends Canvas {
     }
 
     private void init() {
-        this.setWidth(1920);
-        this.setHeight(1000);
+        this.setWidth(Main.WIDTH);
+        this.setHeight(Main.HEIGHT);
         gtx = this.getGraphicsContext2D();
     }
     
 
     private void build() {
         attractor = new Particle(this.getWidth() / 2, this.getHeight() / 2);
+        
+        attractor.setR(Particle.MAX_SIZE);
 
         this.setOnMouseDragged(e -> {
             if(e.getButton() == MouseButton.PRIMARY){
                 attractor.setX(e.getX());
                 attractor.setY(e.getY());
-            }
+            } else if (e.getButton() == MouseButton.SECONDARY) {
+        		if (amount_particles < 100000) {
+	        		amount_particles++;
+	        		createParticle(e.getX(), e.getY(), attractor);
+        		}
+        	}
 
         });
         
         gtx.setFill(Color.rgb(0, 0, 0, 1));
         gtx.fillRect(0, 0, this.getWidth(), this.getHeight());
+        
         
         this.setOnMouseClicked(e -> {
             //get type of mouse click
@@ -56,17 +65,18 @@ public class DrawScreen extends Canvas {
                 attractor.setY(e.getY());
 
                 //else if rightclick, create particles
-            } else if (button == MouseButton.SECONDARY) {
-                
-
-                if (amount_particles + particles_per_klik <= 100000) {
-                    amount_particles += particles_per_klik;
-                    for (int i = 0; i < particles_per_klik; i++) {
-                        createParticle(e.getX(), e.getY(), attractor);
-                    }
-                }
-
-            }
+            } 
+//            else if (button == MouseButton.SECONDARY) {
+//                
+//
+//                if (amount_particles + particles_per_klik <= 100000) {
+//                    amount_particles += particles_per_klik;
+//                    for (int i = 0; i < particles_per_klik; i++) {
+//                        createParticle(e.getX(), e.getY(), attractor);
+//                    }
+//                }
+//
+//            }
         });
     }
 
