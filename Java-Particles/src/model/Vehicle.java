@@ -4,6 +4,7 @@ package model;
 import application.Main;
 import javafx.collections.ObservableList;
 import javafx.geometry.Point2D;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
@@ -44,8 +45,9 @@ public class Vehicle extends Polygon {
 	public void update() {
 		this.setVel(this.getVel().add(this.getAcc()));
 		
-		if (this.getVel().magnitude() > MAXSPEED)
+		if (this.getVel().magnitude() > MAXSPEED) {
 			this.setVel(this.getVel().normalize().multiply(MAXSPEED));
+		}
 		
 		this.setPos(this.getPos().add(this.getVel()));
 		this.setAcc(this.getAcc().multiply(0));
@@ -63,10 +65,16 @@ public class Vehicle extends Polygon {
 	}
 	
 	public void display() {
+		
 		this.setTranslateX(this.pos.getX());
 		this.setTranslateY(this.pos.getY());
 		double angle = this.getPos().angle(this.getVel());
 		this.setRotate(angle + 180);
+	}
+	
+	public void draw(GraphicsContext gtx) {
+        gtx.setFill(Color.rgb(100, 105, 255, 10));
+        gtx.fillOval(this.pos.getX(), this.pos.getY(), 2, 2);
 	}
 	
 	public void print() {
