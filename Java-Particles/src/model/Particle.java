@@ -1,5 +1,7 @@
 package model;
 
+import java.util.List;
+
 import application.Main;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
@@ -11,7 +13,7 @@ public class Particle {
     
 	public static final double MAX_SIZE = 6; 
 	public static final double MIN_SIZE = 1;
-    private final double G = 300;
+    public static double G = 300;
 //    private final double vel_strength = 0.1;
     public final double MIN_SPEED = 1;
     public final double MAX_SPEED = 60;
@@ -25,17 +27,28 @@ public class Particle {
     private Color color;
 
     public Particle(double x, double y) {
-//    	this(x, y, attractor);
         this(x, y, null);
     }
     
+    public static void changeGravity(String dir) {
+    	double GRAV_STEP = 20;
+    	if (dir.equals("w"))
+    		Particle.G += GRAV_STEP;
+    	else if (dir.equals("s"))
+    		Particle.G -= GRAV_STEP;
+    	else if (dir.equals("g")) {
+    		Particle.G = (Particle.G == 0) ? 300 : 0;
+    	}
+    } 
+    
+    
     public Particle(double x, double y, Particle attractor) {
-    	this.r = MIN_SIZE + Math.random()*(MAX_SIZE-MIN_SIZE);
+    	this.r = MIN_SIZE + Math.random()* (MAX_SIZE-MIN_SIZE);
         pos = new Vector(x, y);
         acc = new Vector(0, 0);
 //        color = Color.color(Math.random(), Math.random(), Math.random());
         double rg = Math.random();
-        color = Color.color(rg, rg, 1);
+        color = Color.color(1, 1, r/MAX_SIZE);
         if (attractor != null)
         	this.attractor = attractor;
         initVel();
@@ -78,6 +91,29 @@ public class Particle {
         this.acc = desired.setMag(strength);
     }
     
+    public void flee(Particle other) {
+    	
+    	if (this.distance(other) < this.r * 2) {
+    		Vector desired = Vector.sub(other.getPos(), this.getPos()).limit(MAX_SPEED);
+        	Vector steer = Vector.sub(desired, this.vel).limit(MAX_SPEED).mult(-1);
+        	this.applyForce(steer.limit(MAX_FORCE));
+    	}
+    }
+    
+    public void flee(List<Particle> particles) {
+    	Vector desired = new Vector(0,0); 
+    	Vector steer = new Vector(0,0);
+    	
+    	for (Particle p : particles) {
+    		if (this.distance(p) < this.r*2) {
+	    		desired = Vector.sub(this.getPos(), p.getPos());
+	    		steer.add(desired);
+    		}
+    	}
+    	this.applyForce(steer.limit(MAX_FORCE));
+    	
+    }
+    
     public void attracted2() {
         
     	Vector desired = Vector.sub(attractor.getPos(), this.getPos()).limit(MAX_SPEED);
@@ -99,7 +135,7 @@ public class Particle {
         
 //        Vector steer = desired.limit(MAX_SPEED).sub(this.vel).limit(MAX_FORCE);
 //        System.out.println("Distance: " + dist + "\nSteer: " + steer);
-        applyForce(steer.limit(MAX_FORCE));
+        this.applyForce(steer.limit(MAX_FORCE));
        
     }
     

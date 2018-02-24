@@ -36,8 +36,7 @@ public class DrawScreen extends Canvas {
     private void build() {
         attractor = new Particle(this.getWidth() / 2, this.getHeight() / 2);
         attractor.setR(20);
-         
-
+        
         this.setOnMouseDragged(e -> {
             if(e.getButton() == MouseButton.PRIMARY){
                 attractor.setX(e.getX());
@@ -68,6 +67,9 @@ public class DrawScreen extends Canvas {
                 attractor.setY(e.getY());
             } 
         });
+        
+        
+        
     }
 
     private void createParticle(double x, double y, Particle a) {
@@ -85,11 +87,12 @@ public class DrawScreen extends Canvas {
 
         attractor.draw(gtx);
 
-        gtx.fillText("Particles: " + amount_particles, 20, 50);
+        gtx.fillText("Particles: " + amount_particles + "\nGravity: " + Particle.G, 20, 50);
     }
 
     public void update() {
         particles.forEach(p -> {
+//        	p.flee(particles);
             p.update();
         });
     }
