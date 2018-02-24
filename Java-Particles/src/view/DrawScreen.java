@@ -35,18 +35,21 @@ public class DrawScreen extends Canvas {
 
     private void build() {
         attractor = new Particle(this.getWidth() / 2, this.getHeight() / 2);
-        
-        attractor.setR(Particle.MAX_SIZE);
+        attractor.setR(20);
+         
 
         this.setOnMouseDragged(e -> {
             if(e.getButton() == MouseButton.PRIMARY){
                 attractor.setX(e.getX());
                 attractor.setY(e.getY());
             } else if (e.getButton() == MouseButton.SECONDARY) {
-        		if (amount_particles < 100000) {
-	        		amount_particles++;
-	        		createParticle(e.getX(), e.getY(), attractor);
-        		}
+            	
+            	for (int i = 0; i < 10; i++) {
+            		if (amount_particles < 100000) {
+            			amount_particles++;
+            			createParticle(e.getX(), e.getY(), attractor);
+            		}
+            	}
         	}
 
         });
@@ -63,20 +66,7 @@ public class DrawScreen extends Canvas {
             if (button == MouseButton.PRIMARY) {
                 attractor.setX(e.getX());
                 attractor.setY(e.getY());
-
-                //else if rightclick, create particles
             } 
-//            else if (button == MouseButton.SECONDARY) {
-//                
-//
-//                if (amount_particles + particles_per_klik <= 100000) {
-//                    amount_particles += particles_per_klik;
-//                    for (int i = 0; i < particles_per_klik; i++) {
-//                        createParticle(e.getX(), e.getY(), attractor);
-//                    }
-//                }
-//
-//            }
         });
     }
 

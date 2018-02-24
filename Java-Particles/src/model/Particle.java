@@ -9,12 +9,13 @@ import javafx.stage.Screen;
 
 public class Particle {
     
-	public static final double MAX_SIZE = 10; 
-	public static final double MIN_SIZE = 2;
-    private final double G = 200;
-    private final double vel_strength = 3;
-    public final double MAX_SPEED = 3;
-    public final double MAX_FORCE = 2;
+	public static final double MAX_SIZE = 6; 
+	public static final double MIN_SIZE = 1;
+    private final double G = 300;
+//    private final double vel_strength = 0.1;
+    public final double MIN_SPEED = 1;
+    public final double MAX_SPEED = 60;
+    public final double MAX_FORCE = 30;
     private double r;
     
     private Particle attractor;
@@ -29,7 +30,7 @@ public class Particle {
     }
     
     public Particle(double x, double y, Particle attractor) {
-    	this.r = Math.floor(MIN_SIZE + Math.random()*(MAX_SIZE-MIN_SIZE));
+    	this.r = MIN_SIZE + Math.random()*(MAX_SIZE-MIN_SIZE);
         pos = new Vector(x, y);
         acc = new Vector(0, 0);
 //        color = Color.color(Math.random(), Math.random(), Math.random());
@@ -37,13 +38,12 @@ public class Particle {
         color = Color.color(rg, rg, 1);
         if (attractor != null)
         	this.attractor = attractor;
-        detVel();
+        initVel();
     }
     
-    private void detVel(){
-//        this.vel = new Vector(Math.random() * vel_strength * 2 - vel_strength, Math.random() * vel_strength * 2 - vel_strength);
+    private void initVel(){
     	this.vel = new Vector(Math.random(), Math.random());
-    	this.vel.setMag(vel_strength);
+    	this.vel.limit(MAX_SPEED);
     }
 
     public Vector getPos() {
@@ -65,21 +65,64 @@ public class Particle {
     public void attracted() {
         Vector dir = Vector.sub(attractor.getPos(), pos);
         double dsquared = dir.magSq();
-        dsquared = constrain(dsquared, 50, 200);
-        double strength = (G / dsquared) * (1/r);
-        dir.setMag(strength);
-        this.acc = dir;
+        double dist = dir.magnitude();
+        dsquared = constrain(dsquared, 0, 200);
+        double strength = (G / dsquared) / (r);
+        
+        Vector desired = dir;
+        
+        if (dist < attractor.r*r) {
+        	desired.add(dir.mult(-4/r));
+        }
+
+        this.acc = desired.setMag(strength);
     }
     
-    public void seek() {
-		Vector desired = attractor.getPos().sub(getPos());
-		desired.setMag(1).mult(MAX_SPEED);
-		Vector steer = desired.sub(this.vel);
-		this.applyForce(steer);
-	}
+    public void attracted2() {
+        
+    	Vector desired = Vector.sub(attractor.getPos(), this.getPos()).limit(MAX_SPEED);
+    	Vector steer = Vector.sub(desired, this.vel).limit(MAX_SPEED);
+    	
+    	double mag = steer.magnitude();
+        double dist = this.distance(attractor);
+        
+//        desired.setMag(mag * 0.999);
+        
+//        if (dist > 200) {
+//        	desired.setMag(MAX_SPEED);
+//        } else {
+//        	desired.setMag(dist/200);
+//        }
+        
+        System.out.println("Steer: "+ steer +" - Magnitude: " + mag + " - Dist: " + dist);
+
+        
+//        Vector steer = desired.limit(MAX_SPEED).sub(this.vel).limit(MAX_FORCE);
+//        System.out.println("Distance: " + dist + "\nSteer: " + steer);
+        applyForce(steer.limit(MAX_FORCE));
+       
+    }
+    
+    public double distance(Particle other) {
+    	return this.pos.sub(other.pos).magnitude();
+    }
+    
+//    public void seek() {
+//		Vector desired = attractor.getPos().sub(getPos());
+//		desired.setMag(MAX_SPEED);
+//		Vector steer = desired.sub(this.vel);
+//		this.applyForce(steer);
+//	}
+//    
+//    public void seek(Vector target) {
+//		Vector desired = target.sub(getPos());
+//		desired.setMag(MAX_SPEED);
+//		Vector steer = desired.sub(this.vel);
+//		this.applyForce(steer);
+//	}
     
     public void applyForce(Vector force) {
-    	this.acc.add(force);
+    	this.acc.add(force).limit(MAX_FORCE);
     }
 
     private double constrain(double getal, double min, double max) {
@@ -95,41 +138,37 @@ public class Particle {
     public void update() {
         pos.add(vel);
         
-        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-        
-        
-        if(pos.getX() <= this.r){
-//            vel.touchObject();
-        	vel.setX(vel.getX() * -1);
-        }
-        
-//        if(pos.getX() >= primaryScreenBounds.getWidth() - 20){
-        if(pos.getX() >= Main.WIDTH - this.r){
-//            vel.touchObject();
-        	vel.setX(vel.getX() * -1);
-        }
-        
-        if(pos.getY() <= this.r){
-//            vel.touchObject();
-        	vel.setY(vel.getY() * -1);
-        }
-        
-//        if(pos.getY() >= primaryScreenBounds.getHeight() - 50){
-        if(pos.getY() >= Main.HEIGHT - this.r){
-//            vel.touchObject();
-        	vel.setY(vel.getY() * -1);
-        }
-        
-        vel.add(acc);
-//        acc.setMag(0);
-        
+//        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        vel.add(acc); // .limit(MAX_SPEED / (r*r));
+        vel.setMag(constrain(vel.magnitude(), MIN_SPEED, MAX_SPEED/r));
+        acc.set(0, 0);
+
+
         attracted();
+//        attracted2();
 //        seek();
+        edges();
+    }
+    
+    public void edges() {
+    	double damp = 0.2;
+    	
+    	if((pos.getX() <= this.r && this.vel.getX() < 0) || 
+    			(pos.getX() >= Main.WIDTH - this.r && this.vel.getX() > 0) )  {
+    		vel.setX(vel.getX() * -1);
+    		vel.mult(damp);
+    	}
+
+    	if( (pos.getY() <= this.r && this.vel.getY() < 0)|| 
+    			(pos.getY() >= Main.HEIGHT - this.r && this.vel.getY() > 0)){
+    		vel.setY(vel.getY() * -1);
+    		vel.mult(damp);
+    	}
     }
 
     public void draw(GraphicsContext gtx) {
-//        gtx.setFill(Color.rgb(100, 105, 255, 1));
-        gtx.setFill(color);
-        gtx.fillOval(this.pos.getX(), this.pos.getY(), this.r, this.r);
+    	//        gtx.setFill(Color.rgb(100, 105, 255, 1));
+    	gtx.setFill( (r < MAX_SIZE) ? color : Color.RED);
+    	gtx.fillOval(this.pos.getX() - this.r/2, this.pos.getY() - this.r/2, this.r, this.r);
     }
 }

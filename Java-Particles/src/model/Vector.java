@@ -50,12 +50,27 @@ public class Vector {
         return (x*x + y*y);
     }
     
+    public double magnitude() {
+    	return Math.sqrt((x*x + y*y));
+    }
+    
+    public Vector limit(double max) {
+    	if (this.magnitude() > max) {
+    		this.setMag(max);
+    	} 
+    	return this;
+    }
+    
     public Vector setMag(double mag){
         double old_mag = Math.sqrt((x*x + y*y));
         
         this.x = x * mag / old_mag;
         this.y = y * mag / old_mag;
         return this;
+    }
+    
+    public Vector normalize() {
+    	return this.setMag(1);
     }
 
     public double getX() {
