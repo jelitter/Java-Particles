@@ -3,31 +3,50 @@ package model;
 import java.util.List;
 
 import application.Main;
-import javafx.geometry.Point2D;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.stage.Screen;
 
 public class Particle {
     
-	public static final double MAX_SIZE = 6; 
+	public static final double MAX_SIZE = 8; 
 	public static final double MIN_SIZE = 1;
     public static double G = 300;
 //    private final double vel_strength = 0.1;
-    public final double MIN_SPEED = 1;
-    public final double MAX_SPEED = 60;
-    public final double MAX_FORCE = 30;
+    public double MIN_SPEED = 1;
+    public double MAX_SPEED = 20;
+    public double MAX_FORCE = 100;
+    public final double LIFE_PER_R = 10;
     private double r;
     
+    private double life;
     private Particle attractor;
     private final Vector pos;
     private Vector vel;
     private Vector acc;
     private Color color;
+    public boolean isDead;
 
     public Particle(double x, double y) {
         this(x, y, null);
+    }
+    
+    public Particle(double x, double y, Particle attractor) {
+    	this.r = MIN_SIZE + Math.random()* (MAX_SIZE-MIN_SIZE);
+    	this.life = r * LIFE_PER_R;
+    	this.isDead = false;
+        this.pos = new Vector(x, y);
+        this.acc = new Vector(0, 0);
+//        color = Color.color(Math.random(), Math.random(), Math.random());
+//        double rg = Math.random();
+        color = Color.color(1, 1, r/MAX_SIZE);
+        if (attractor != null)
+        	this.attractor = attractor;
+        initVel();
+    }
+    
+    private void initVel(){
+    	this.vel = new Vector(Math.random(), Math.random());
+    	this.vel.limit(MAX_SPEED);
     }
     
     public static void changeGravity(String dir) {
@@ -41,23 +60,6 @@ public class Particle {
     	}
     } 
     
-    
-    public Particle(double x, double y, Particle attractor) {
-    	this.r = MIN_SIZE + Math.random()* (MAX_SIZE-MIN_SIZE);
-        pos = new Vector(x, y);
-        acc = new Vector(0, 0);
-//        color = Color.color(Math.random(), Math.random(), Math.random());
-        double rg = Math.random();
-        color = Color.color(1, 1, r/MAX_SIZE);
-        if (attractor != null)
-        	this.attractor = attractor;
-        initVel();
-    }
-    
-    private void initVel(){
-    	this.vel = new Vector(Math.random(), Math.random());
-    	this.vel.limit(MAX_SPEED);
-    }
 
     public Vector getPos() {
         return pos;
@@ -84,20 +86,22 @@ public class Particle {
         
         Vector desired = dir;
         
-        if (dist < attractor.r*r) {
-        	desired.add(dir.mult(-4/r));
-        }
+//        if (dist < attractor.r) {
+//        	desired.add(dir.mult(-4/r));
+//        }
 
         this.acc = desired.setMag(strength);
     }
     
     public void flee(Particle other) {
     	
-    	if (this.distance(other) < this.r * 2) {
-    		Vector desired = Vector.sub(other.getPos(), this.getPos()).limit(MAX_SPEED);
-        	Vector steer = Vector.sub(desired, this.vel).limit(MAX_SPEED).mult(-1);
-        	this.applyForce(steer.limit(MAX_FORCE));
-    	}
+    	Vector dir = Vector.sub(other.getPos(), pos);
+        double dsquared = dir.magSq();
+        dsquared = constrain(dsquared, 0, 200);
+        double strength = (G / dsquared) / (r);
+        Vector desired = dir;
+
+        this.acc = desired.setMag(strength).mult(-1);
     }
     
     public void flee(List<Particle> particles) {
@@ -158,7 +162,19 @@ public class Particle {
 //	}
     
     public void applyForce(Vector force) {
-    	this.acc.add(force).limit(MAX_FORCE);
+    	this.acc.add(force).limit(MAX_FORCE/r);
+    }
+    
+    public void revive() {
+    	
+//    	this.r = constrain(MAX_SIZE/(1+this.distance(attractor)), MIN_SIZE, MAX_SIZE);
+    	this.r = MIN_SIZE + Math.random()* (MAX_SIZE-MIN_SIZE);
+//    	this.r = MAX_SIZE;
+    	this.life = r * LIFE_PER_R;
+    	this.vel.set(0, 0);
+//    	this.acc.set(0, 0);
+        color = Color.color(1,  (r/MAX_SIZE) % 1, 1);
+        this.isDead = false;
     }
 
     private double constrain(double getal, double min, double max) {
@@ -172,11 +188,22 @@ public class Particle {
     }
 
     public void update() {
+    	
+    	life -= 0.1;
+    	r = life / LIFE_PER_R;
+    	if (life < 0) {
+    		color = Color.BLACK;
+    		r = 1;
+    		isDead= true;
+    	} else {
+    		color = Color.color(1, 1, r/MAX_SIZE);
+    	}
+    	
         pos.add(vel);
         
 //        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         vel.add(acc); // .limit(MAX_SPEED / (r*r));
-        vel.setMag(constrain(vel.magnitude(), MIN_SPEED, MAX_SPEED/r));
+        vel.setMag(constrain(vel.magnitude(), MIN_SPEED, MAX_SPEED));
         acc.set(0, 0);
 
 

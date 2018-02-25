@@ -9,11 +9,13 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import model.Particle;
+import model.Vector;
 
 public class DrawScreen extends Canvas {
 
     private GraphicsContext gtx;
 
+    private int numAlive = 0;
     private int amount_particles = 0;
     private int particles_per_klik = 50;
 
@@ -36,6 +38,7 @@ public class DrawScreen extends Canvas {
     private void build() {
         attractor = new Particle(this.getWidth() / 2, this.getHeight() / 2);
         attractor.setR(20);
+        attractor.MAX_SPEED = 20;
         
         this.setOnMouseDragged(e -> {
             if(e.getButton() == MouseButton.PRIMARY){
@@ -43,7 +46,7 @@ public class DrawScreen extends Canvas {
                 attractor.setY(e.getY());
             } else if (e.getButton() == MouseButton.SECONDARY) {
             	
-            	for (int i = 0; i < 10; i++) {
+            	for (int i = 0; i < 2; i++) {
             		if (amount_particles < 100000) {
             			amount_particles++;
             			createParticle(e.getX(), e.getY(), attractor);
@@ -87,14 +90,66 @@ public class DrawScreen extends Canvas {
 
         attractor.draw(gtx);
 
-        gtx.fillText("Particles: " + amount_particles + "\nGravity: " + Particle.G, 20, 50);
+        if (numAlive > 0) {
+        gtx.fillText("Particles: " + amount_particles + 
+        			 "\nAlive:  " + numAlive + " ("+ (numAlive*100/amount_particles) +"%)" +
+        		     "\nGravity: " + Particle.G
+        		     , 20, 50);
+        } else {
+        	gtx.fillText("Particles: " + amount_particles + 
+       			 "\nAlive:  " + numAlive +
+       		     "\nGravity: " + Particle.G
+       		     , 20, 50);
+        }
+        
     }
 
     public void update() {
-        particles.forEach(p -> {
-//        	p.flee(particles);
-            p.update();
-        });
+
+    	double sumx = 0;
+    	double sumy = 0;
+    	numAlive = 0;
+    	
+    	for (Particle p : particles) {
+    		if (!p.isDead) {
+    			numAlive++;
+	    		sumx += p.getPos().getX();
+	    		sumy += p.getPos().getY();
+    		}
+    	};
+    	if (numAlive > 2) {
+	    	sumx = sumx / numAlive;
+	    	sumy = sumy / numAlive;
+//	    	System.out.println("Sumx, sumy: " + sumx + ", " + sumy);
+//	    	attractor.flee(new Particle(sumx, sumy));
+	    	if ((sumx < 1) ||
+	    	   (sumy < 1) ||
+	    	   (sumx > Main.WIDTH) ||
+	    	   (sumy > Main.HEIGHT)) {
+	    		attractor.setX(Main.WIDTH/2);
+	            attractor.setY(Main.HEIGHT/2);
+	    	} else {
+	    		attractor.setX(sumx);
+	    		attractor.setY(sumy);
+	    	}
+	    	attractor.edges();
+	    	
+    	} else {
+    		attractor.setX(Main.WIDTH/2);
+            attractor.setY(Main.HEIGHT/2);
+    	}
+    	
+        
+        for (Particle p : particles) {
+        	if (!p.isDead) {
+        		p.update();
+        	} else {
+        		if (Math.random() < 0.005) {
+        			p.revive();
+        		}
+        	}
+        }
     }
 
 }
+ 
