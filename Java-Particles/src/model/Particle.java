@@ -88,7 +88,7 @@ public class Particle extends Polygon {
 	public void seek(MyVector target) {
 		MyVector desired = target.subtract(this.pos).setMag(Particle.MAXVEL);
 		Double dist = this.pos.distance(target); 
-		System.out.println(dist);
+//		System.out.println(dist);
 		MyVector steer = desired.subtract(this.vel).limit(Particle.MAXVEL);
 //		System.out.println("Desired:" + desired);
 //		System.out.println("Steer:" + steer);

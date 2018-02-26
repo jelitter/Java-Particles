@@ -16,8 +16,8 @@ import javafx.scene.layout.Pane;
 
 public class Main extends Application {
 	
-	public static final double WIDTH = 2500;
-	public static final double HEIGHT = 1200;
+	public static final double WIDTH = 1600;
+	public static final double HEIGHT = 800;
 	
 	private static int NUM_PARTICLES = 50;
 	private ArrayList<Particle> particles;
