@@ -1,128 +1,236 @@
 package model;
 
+import java.util.List;
+
 import application.Main;
-import javafx.collections.ObservableList;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 
-public class Particle extends Polygon {
+public class Particle {
+    
+	public static double MAX_SIZE = 3; 
+	public static double MIN_SIZE = 0.5;
+    public static double G = 300;
+//    private final double vel_strength = 0.1;
+    public double MIN_SPEED = 1;
+    public double MAX_SPEED = 20;
+    public double MAX_FORCE = 100;
+    public final double LIFE_PER_R = 10;
+    private double r;
+    
+    private double life;
+    private Particle attractor;
+    private final Vector pos;
+    private Vector vel;
+    private Vector acc;
+    private Color color;
+    public boolean isDead;
 
-	//	public static int sides = 3;
-	public static final double MAXVEL = 2.0;
-//	public static final double WIDTH = 1300.0;
-//	public static final double HEIGHT = 900.0;
+    public Particle(double x, double y) {
+        this(x, y, null);
+    }
+    
+    public Particle(double x, double y, Particle attractor) {
+    	this.r = MIN_SIZE + Math.random()* (MAX_SIZE-MIN_SIZE);
+    	this.life = r * LIFE_PER_R;
+    	this.isDead = false;
+        this.pos = new Vector(x, y);
+        this.acc = new Vector(0, 0);
+//        color = Color.color(Math.random(), Math.random(), Math.random());
+//        double rg = Math.random();
+        color = Color.color(1, 1, r/MAX_SIZE);
+        if (attractor != null)
+        	this.attractor = attractor;
+        initVel();
+    }
+    
+    private void initVel(){
+    	this.vel = new Vector(Math.random(), Math.random());
+    	this.vel.limit(MAX_SPEED);
+    }
+    
+    public static void changeGravity(String dir) {
+    	double GRAV_STEP = 20;
+    	if (dir.equals("w"))
+    		Particle.G += GRAV_STEP;
+    	else if (dir.equals("s"))
+    		Particle.G -= GRAV_STEP;
+    	else if (dir.equals("g")) {
+    		Particle.G = (Particle.G == 0) ? 300 : 0;
+    	}
+    } 
+    
 
-	private double r, vitality, angle, rotation;
-	private int sides;
-	public MyVector pos, vel, acc;
-	private Color col;
-	
-	public Particle(double x, double y) {
-		this();
-		this.pos = new MyVector(x, y);
-	}
+    public Vector getPos() {
+        return pos;
+    }
 
+    public void setX(double x) {
+        this.pos.setX(x);
+    }
 
-	public Particle() {
+    public void setY(double y) {
+        this.pos.setY(y);
+    }
+    
+    public void setR(double r) {
+    	this.r = r;
+    }
 
-		this.r = 30 + Math.random() * 20;
-//		this.r = 50;
-		this.vitality = 100;
-		this.angle = Math.random() * 360;
-		this.rotation = (-1 + Math.random() * 2) * (5 * Math.random());
-//		this.sides = (int) (3 + Math.floor(Math.random() * 5));
-		this.sides = 3;
+    public void attracted() {
+        Vector dir = Vector.sub(attractor.getPos(), pos);
+        double dsquared = dir.magSq();
+//        double dist = dir.magnitude();
+        dsquared = constrain(dsquared, 0, 200);
+        double strength = (G / dsquared) / (r);
+        
+        Vector desired = dir;
+        
+//        if (dist < attractor.r) {
+//        	desired.add(dir.mult(-4/r));
+//        }
 
+        this.acc = desired.setMag(strength);
+    }
+    
+    public void flee(Particle other) {
+    	
+    	Vector dir = Vector.sub(other.getPos(), pos);
+        double dsquared = dir.magSq();
+        dsquared = constrain(dsquared, 0, 200);
+        double strength = (G / dsquared) / (r);
+        Vector desired = dir;
 
-		this.pos = new MyVector(this.getTranslateX() + Math.random()*Main.WIDTH, this.getTranslateY() + Math.random()*Main.HEIGHT);
-//		this.pos = new MyVector(Math.random()*Main.WIDTH, Math.random()*Main.HEIGHT);
+        this.acc = desired.setMag(strength).mult(-1);
+    }
+    
+    public void flee(List<Particle> particles) {
+    	Vector desired = new Vector(0,0); 
+    	Vector steer = new Vector(0,0);
+    	
+    	for (Particle p : particles) {
+    		if (this.distance(p) < this.r*2) {
+	    		desired = Vector.sub(this.getPos(), p.getPos());
+	    		steer.add(desired);
+    		}
+    	}
+    	this.applyForce(steer.limit(MAX_FORCE));
+    	
+    }
+    
+    public void attracted2() {
+        
+    	Vector desired = Vector.sub(attractor.getPos(), this.getPos()).limit(MAX_SPEED);
+    	Vector steer = Vector.sub(desired, this.vel).limit(MAX_SPEED);
+    	
+    	double mag = steer.magnitude();
+        double dist = this.distance(attractor);
+        
+//        desired.setMag(mag * 0.999);
+        
+//        if (dist > 200) {
+//        	desired.setMag(MAX_SPEED);
+//        } else {
+//        	desired.setMag(dist/200);
+//        }
+        
+        System.out.println("Steer: "+ steer +" - Magnitude: " + mag + " - Dist: " + dist);
 
-//		this.setTranslateX(this.pos.getX());
-//		this.setTranslateY(this.pos.getY());
-
-		this.vel = new MyVector(0,0);
-		this.acc = new MyVector(0,0);
-//		this.vel = new MyVector(-1 + 2 * Math.random()/100, -1 + 2 * Math.random()/100);
-//		this.acc = new MyVector(-1 + 2 * Math.random()/100, -1 + 2 * Math.random()/100);
-		this.col = Color.color(Math.random(), Math.random(), Math.random());
-		this.setFill(this.col);
-		this.setStroke(this.col.darker());
-		this.setStrokeWidth(this.r/10);
-//		this.setRotate(this.angle);
-//		this.setOpacity(0.2 + Math.random());
-
-		ObservableList<Double> list = this.getPoints();
-
-		for (int i = 0; i < sides; i++) {
-			list.add(this.pos.getX() + r * Math.cos(2 * i * Math.PI / sides)); 
-			list.add(this.pos.getY() - r * Math.sin(2 * i * Math.PI / sides));
-		}
-	}
-
-	public void rotate() {
-		this.angle += this.rotation;
-		this.setRotate(this.angle);
-	}
-
-	public void update() {
-		this.vel = this.vel.add(this.acc);
-		this.vel = this.vel.limit(Particle.MAXVEL);
-		this.pos = this.pos.add(this.vel);
-		this.acc = new MyVector(0,0);
-		this.setRotate(this.vel.angle(this.pos));
-		this.setTranslateX(this.pos.getX());
-		this.setTranslateY(this.pos.getY());
-//		this.setTranslateX(this.getTranslateX() + this.pos.getX());
-//		this.setTranslateY(this.getTranslateX() + this.pos.getY());
-	}
-	
-//	public void update2() {
-//		this.pos = this.pos.add(this.vel);
-//		this.setTranslateX(this.pos.getX());
-////		this.setTranslateY(this.pos.getY());
+        
+//        Vector steer = desired.limit(MAX_SPEED).sub(this.vel).limit(MAX_FORCE);
+//        System.out.println("Distance: " + dist + "\nSteer: " + steer);
+        this.applyForce(steer.limit(MAX_FORCE));
+       
+    }
+    
+    public double distance(Particle other) {
+    	return this.pos.sub(other.pos).magnitude();
+    }
+    
+//    public void seek() {
+//		Vector desired = attractor.getPos().sub(getPos());
+//		desired.setMag(MAX_SPEED);
+//		Vector steer = desired.sub(this.vel);
+//		this.applyForce(steer);
 //	}
-	
-	public void applyForce(MyVector force) {
-		this.acc = this.acc.add(force);
-	}
-	public void seek(MyVector target) {
-		MyVector desired = target.subtract(this.pos).setMag(Particle.MAXVEL);
-		Double dist = this.pos.distance(target); 
-//		System.out.println(dist);
-		MyVector steer = desired.subtract(this.vel).limit(Particle.MAXVEL);
-//		System.out.println("Desired:" + desired);
-//		System.out.println("Steer:" + steer);
-		this.applyForce(steer);
-	}
+//    
+//    public void seek(Vector target) {
+//		Vector desired = target.sub(getPos());
+//		desired.setMag(MAX_SPEED);
+//		Vector steer = desired.sub(this.vel);
+//		this.applyForce(steer);
+//	}
+    
+    public void applyForce(Vector force) {
+    	this.acc.add(force).limit(MAX_FORCE/r);
+    }
+    
+    public void revive() {
+    	
+//    	this.r = constrain(MAX_SIZE/(1+this.distance(attractor)), MIN_SIZE, MAX_SIZE);
+    	this.r = MIN_SIZE + Math.random()* (MAX_SIZE-MIN_SIZE);
+//    	this.r = MAX_SIZE;
+    	this.life = r * LIFE_PER_R;
+    	this.vel.set(0, 0);
+//    	this.acc.set(0, 0);
+        color = Color.color(1,  (r/MAX_SIZE) % 1, 1);
+        this.isDead = false;
+    }
 
-	public void edges() {
+    private double constrain(double getal, double min, double max) {
+        if (getal > max) {
+            return max;
+        } else if (getal < min) {
+            return min;
+        } else {
+            return getal;
+        }
+    }
 
-		// TOP
-		if (this.vel.getY() < 0 && this.pos.getY() < 0) {
-			this.applyForce(new MyVector(0, Particle.MAXVEL));
-		}
+    public void update() {
+    	
+    	life -= 0.1;
+    	r = life / LIFE_PER_R;
+    	if (life < 0) {
+    		color = Color.BLACK;
+    		r = 1;
+    		isDead= true;
+    	} else {
+    		color = Color.color(1, 1, r/MAX_SIZE);
+    	}
+    	
+        pos.add(vel);
+        
+//        Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
+        vel.add(acc); // .limit(MAX_SPEED / (r*r));
+        vel.setMag(constrain(vel.magnitude(), MIN_SPEED, MAX_SPEED));
+        acc.set(0, 0);
 
-		// LEFT
-		if (this.vel.getX() < 0 && this.pos.getX() < 0) {
-			this.applyForce(new MyVector(Particle.MAXVEL, 0));
-		}
 
-		// RIGHT
-		if (this.vel.getX() > 0 && this.pos.getX() > Main.WIDTH) {
-			this.applyForce(new MyVector(-Particle.MAXVEL, 0));
-		}
+        attracted();
+//        attracted2();
+//        seek();
+        edges();
+    }
+    
+    public void edges() {
+    	double damp = 0.2;
+    	
+    	if((pos.getX() <= this.r && this.vel.getX() < 0) || 
+    			(pos.getX() >= Main.WIDTH - this.r && this.vel.getX() > 0) )  {
+    		vel.setX(vel.getX() * -1);
+    		vel.mult(damp);
+    	}
 
-		// BOTTOM
-		if (this.vel.getY() > 0 && this.pos.getY() > Main.HEIGHT) {
-			this.applyForce(new MyVector(0, -Particle.MAXVEL));
-		}
-	}
-	
-	public void print() {
-		System.out.println("Pos: " + this.pos);
-		System.out.println("Vel: " + this.vel);
-		System.out.println("Acc: " + this.acc);
-		System.out.println();
-	}
-	
+    	if( (pos.getY() <= this.r && this.vel.getY() < 0)|| 
+    			(pos.getY() >= Main.HEIGHT - this.r && this.vel.getY() > 0)){
+    		vel.setY(vel.getY() * -1);
+    		vel.mult(damp);
+    	}
+    }
+
+    public void draw(GraphicsContext gtx) {
+    	gtx.setFill( (r < MAX_SIZE) ? color : Color.RED);
+    	gtx.fillOval(this.pos.getX() - this.r/2, this.pos.getY() - this.r/2, this.r, this.r);
+    }
 }
