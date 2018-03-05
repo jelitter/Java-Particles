@@ -196,8 +196,9 @@ public class Particle {
     		r = 1;
     		isDead= true;
     	} else {
-    		color = Color.color(1, 1, r/MAX_SIZE);
+    		color = Color.color(1, 1, constrain(r/MAX_SIZE, 0, 1));
     	}
+    	
     	
         pos.add(vel);
         

@@ -117,26 +117,30 @@ public class DrawScreen extends Canvas {
 	    		sumy += p.getPos().getY();
     		}
     	};
-    	if (numAlive > 2) {
-	    	sumx = sumx / numAlive;
-	    	sumy = sumy / numAlive;
-//	    	System.out.println("Sumx, sumy: " + sumx + ", " + sumy);
-//	    	attractor.flee(new Particle(sumx, sumy));
-	    	if ((sumx < 1) ||
-	    	   (sumy < 1) ||
-	    	   (sumx > Main.WIDTH) ||
-	    	   (sumy > Main.HEIGHT)) {
+    	
+    	// Update Attractor
+    	if (Particle.G != 0 ) {
+	    	if (numAlive > 2) {
+		    	sumx = sumx / numAlive;
+		    	sumy = sumy / numAlive;
+	//	    	System.out.println("Sumx, sumy: " + sumx + ", " + sumy);
+	//	    	attractor.flee(new Particle(sumx, sumy));
+		    	if ((sumx < 1) ||
+		    	   (sumy < 1) ||
+		    	   (sumx > Main.WIDTH) ||
+		    	   (sumy > Main.HEIGHT)) {
+		    		attractor.setX(Main.WIDTH/2);
+		            attractor.setY(Main.HEIGHT/2);
+		    	} else {
+		    		attractor.setX(sumx);
+		    		attractor.setY(sumy);
+		    	}
+		    	attractor.edges();
+		    	
+	    	} else {
 	    		attractor.setX(Main.WIDTH/2);
 	            attractor.setY(Main.HEIGHT/2);
-	    	} else {
-	    		attractor.setX(sumx);
-	    		attractor.setY(sumy);
 	    	}
-	    	attractor.edges();
-	    	
-    	} else {
-    		attractor.setX(Main.WIDTH/2);
-            attractor.setY(Main.HEIGHT/2);
     	}
     	
         
