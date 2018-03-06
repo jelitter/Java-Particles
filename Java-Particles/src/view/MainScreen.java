@@ -41,7 +41,7 @@ public class MainScreen extends BorderPane {
 		buttons.add(new Button("Max Size -"));
 
 		for (Button b : buttons) {
-			b.setMinWidth(120);
+			b.setMinWidth(90);
 			b.setOnMouseClicked(e -> {
 				String buttonText = b.getText();
 				System.out.println("Button clicked: " + b.getText());
@@ -82,7 +82,8 @@ public class MainScreen extends BorderPane {
 					center.update();
 					center.draw();
 				};
-				gameLoop = new Timeline(new KeyFrame(Duration.millis(33.3), gameUpdate));
+//				gameLoop = new Timeline(new KeyFrame(Duration.millis(33.3), gameUpdate));
+				gameLoop = new Timeline(new KeyFrame(Duration.millis(16.666), gameUpdate));
 				gameLoop.setCycleCount(Animation.INDEFINITE);
 				gameLoop.play();
 	}
